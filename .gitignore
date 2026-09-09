@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Runtime output and local test data
+reports/*
+storage/*
+!storage/.gitkeep
+*.log
+
+# Local helper and generated documentation files
+**/README*
+!/README.md
+orcheval-port-override.yml

@@ -1,0 +1,12 @@
+local:
+  base_url: http://127.0.0.1:8000
+  headers:
+    Accept: application/json
+  variables: {}
+
+test:
+  base_url: http://test.example.com
+  headers:
+    Accept: application/json
+  variables: {}
+

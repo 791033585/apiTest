@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: Demo User API
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: '123456'
+    User:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: admin
+paths:
+  /login:
+    post:
+      tags: [认证]
+      operationId: login
+      summary: 管理员登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              example:
+                code: 0
+                msg: 登录成功
+  /users:
+    get:
+      tags: [用户管理]
+      operationId: listUsers
+      summary: 获取用户列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              example:
+                code: 0
+                msg: 获取用户列表成功
+                data: []
+  /users/{id}:
+    get:
+      tags: [用户管理]
+      operationId: getUser
+      summary: 获取指定用户
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{id}/state:
+    put:
+      tags: [用户管理]
+      operationId: updateUserState
+      summary: 修改用户状态
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: 修改成功
+          content:
+            application/json:
+              example:
+                code: 0
+                msg: 设置状态成功
+

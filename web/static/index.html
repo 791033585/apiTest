@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Test Workbench</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">API TEST WORKBENCH</p>
+      <h1>接口自动化测试</h1>
+    </div>
+    <div class="top-actions">
+      <label class="file-button">
+        <input id="spec-file" type="file" accept=".json,.yaml,.yml">
+        上传 Swagger
+      </label>
+      <button id="generate-button" class="primary" disabled>AI 生成用例</button>
+      <button id="run-button" class="success" disabled>执行选中用例</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel interface-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="label">OPENAPI</span>
+          <h2 id="spec-title">尚未上传</h2>
+        </div>
+        <span id="interface-count" class="count">0</span>
+      </div>
+      <div id="interface-list" class="interface-list empty-state">上传 Swagger 后显示接口</div>
+    </aside>
+
+    <section class="panel cases-panel">
+      <div class="panel-heading cases-heading">
+        <div>
+          <span class="label">TEST CASES</span>
+          <h2 id="selected-interface">选择一个接口</h2>
+        </div>
+        <div class="case-actions">
+          <button id="select-all-button" class="ghost" disabled>全选</button>
+          <span id="case-count" class="count">0</span>
+        </div>
+      </div>
+      <div id="case-list" class="case-list empty-state">选择左侧接口查看用例</div>
+    </section>
+
+    <aside class="panel editor-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="label">EDITOR</span>
+          <h2>用例编辑</h2>
+        </div>
+      </div>
+      <div id="editor-empty" class="empty-state">选择一个用例开始编辑</div>
+      <form id="case-form" class="case-form hidden">
+        <input id="case-id" type="hidden">
+        <label>标题<input id="case-title" required></label>
+        <div class="form-grid">
+          <label>类型<input id="case-type" readonly></label>
+          <label>优先级<input id="case-priority" readonly></label>
+        </div>
+        <label>请求头 <span class="hint">JSON</span><textarea id="case-headers"></textarea></label>
+        <label>查询参数 <span class="hint">JSON</span><textarea id="case-params"></textarea></label>
+        <label>表单数据 <span class="hint">JSON</span><textarea id="case-data"></textarea></label>
+        <label>JSON 请求体 <span class="hint">JSON</span><textarea id="case-json"></textarea></label>
+        <label>断言 <span class="hint">JSON 数组</span><textarea id="case-assertions"></textarea></label>
+        <label>变量提取 <span class="hint">JSON 数组</span><textarea id="case-extracts"></textarea></label>
+        <label>依赖用例 <span class="hint">JSON 数组</span><textarea id="case-depends"></textarea></label>
+        <label class="check-label"><input id="case-enabled" type="checkbox"> 启用</label>
+        <label>备注<textarea id="case-notes"></textarea></label>
+        <button type="submit" class="primary full">保存修改</button>
+        <button id="delete-button" type="button" class="danger full">删除用例</button>
+      </form>
+    </aside>
+  </main>
+
+  <section class="runbar panel">
+    <div class="run-config">
+      <label>被测项目 Base URL<input id="base-url" placeholder="例如 http://host.docker.internal:8080"></label>
+      <label>全局 Headers <span class="hint">JSON</span><input id="global-headers" value="{}"></label>
+      <label>变量 <span class="hint">JSON</span><input id="variables" value="{}"></label>
+    </div>
+    <div id="status" class="status">等待上传 OpenAPI 文件</div>
+  </section>
+
+  <section class="result panel">
+    <div class="panel-heading">
+      <div><span class="label">RUN RESULT</span><h2>最近一次执行</h2></div>
+      <a id="report-link" class="report-link hidden" target="_blank" rel="noreferrer">打开 Allure 报告</a>
+    </div>
+    <div class="metrics">
+      <div><span>总数</span><strong id="metric-total">-</strong></div>
+      <div><span>通过</span><strong id="metric-passed" class="ok">-</strong></div>
+      <div><span>失败</span><strong id="metric-failed" class="bad">-</strong></div>
+      <div><span>耗时</span><strong id="metric-duration">-</strong></div>
+    </div>
+    <pre id="run-output" class="run-output">暂无执行日志</pre>
+  </section>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
