@@ -1,7 +1,7 @@
 from typing import Any
 
 
-CASE_TYPES = {"positive", "negative", "boundary", "dependency"}
+CASE_TYPES = {"positive", "negative", "boundary", "security", "dependency"}
 PRIORITIES = {"P0", "P1", "P2", "P3"}
 ASSERTION_TARGETS = {"status_code", "json", "header", "response_time"}
 ASSERTION_OPERATORS = {"eq", "ne", "contains", "gt", "ge", "lt", "le"}

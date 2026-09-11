@@ -22,6 +22,10 @@ def test_prompt_contains_api_test_skills():
     system_prompt = messages[0]["content"]
     assert "OpenAPI 分析 Skill" in system_prompt
     assert "接口测试场景 Skill" in system_prompt
+    assert "接口安全测试场景 Skill" in system_prompt
     assert "接口断言 Skill" in system_prompt
     assert "接口依赖 Skill" in system_prompt
     assert "AI 输出契约 Skill" in system_prompt
+    assert "过期 Token" in system_prompt
+    assert "SQL 注入" in system_prompt
+    assert "并发测试、容量测试和压力测试不属于" in system_prompt

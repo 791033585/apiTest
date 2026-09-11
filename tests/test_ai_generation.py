@@ -109,6 +109,30 @@ def test_validator_normalizes_common_request_field_aliases():
     assert "body" not in case
 
 
+def test_validator_accepts_security_case_type():
+    imported = OpenApiImporter.from_file(OPENAPI_FILE).parse()
+    output = {
+        "schema_version": "1.0",
+        "cases": [
+            {
+                "case_id": "listUsers-security-001",
+                "title": "缺失认证凭证",
+                "case_type": "security",
+                "priority": "P1",
+                "method": "GET",
+                "path": "/users",
+                "assertions": [
+                    {"target": "status_code", "operator": "eq", "expected": 401}
+                ],
+            }
+        ],
+    }
+
+    validated = AiOutputValidator(imported).validate(output)
+
+    assert validated["cases"][0]["case_type"] == "security"
+
+
 def test_mock_output_round_trips_to_excel(tmp_path):
     imported = OpenApiImporter.from_file(OPENAPI_FILE).parse()
     output = MockCaseGenerator().generate(imported, "生成正常、异常、边界和依赖场景")

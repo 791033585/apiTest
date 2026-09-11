@@ -17,10 +17,10 @@ def build_messages(
     known_case_ids = known_case_ids or set()
     skills = load_skills()
     if target_interface is None:
-        task = "根据接口定义生成正常、异常、边界和必要的依赖测试场景"
+        task = "根据接口定义生成正常、异常、边界、安全和必要的依赖测试场景"
         input_data: dict[str, Any] = {"interface_definitions": interface_data}
     else:
-        task = "只为 target_interface 生成正常、异常、边界和必要的依赖测试场景"
+        task = "只为 target_interface 生成正常、异常、边界、安全和必要的依赖测试场景"
         input_data = {
             "target_interface": imported_to_dict(
                 ImportedOpenApi(
@@ -58,7 +58,7 @@ def build_messages(
             "requirement": requirement,
             **input_data,
             "output_rules": {
-                "case_type": ["positive", "negative", "boundary", "dependency"],
+                "case_type": ["positive", "negative", "boundary", "security", "dependency"],
                 "assertion_targets": ["status_code", "json", "header", "response_time"],
                 "assertion_operators": ["eq", "ne", "contains", "gt", "ge", "lt", "le"],
                 "no_business_guess": "Swagger 没有提供的信息不要伪造，在 notes 中说明",

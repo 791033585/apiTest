@@ -5,6 +5,7 @@ SKILL_DIR = Path(__file__).parent / "skills"
 DEFAULT_SKILLS = (
     "openapi_analysis.md",
     "api_test_scenarios.md",
+    "security_scenarios.md",
     "assertions.md",
     "dependencies.md",
     "output_contract.md",

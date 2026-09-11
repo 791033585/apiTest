@@ -27,7 +27,13 @@ function renderInterfaces() {
 }
 
 function renderCases() {
-  $('selected-interface').textContent = state.currentOperationId || '选择一个接口';
+  const currentInterface = state.interfaces.find(item => item.operation_id === state.currentOperationId);
+  $('selected-interface').textContent = currentInterface
+    ? currentInterface.method + ' ' + currentInterface.path
+    : '选择一个接口';
+  $('selected-interface').title = currentInterface
+    ? currentInterface.operation_id + (currentInterface.summary ? ' - ' + currentInterface.summary : '')
+    : '';
   $('case-count').textContent = state.cases.length;
   $('select-all-button').disabled = !state.cases.length;
   $('run-button').disabled = !state.cases.some(item => item.enabled !== false);
@@ -60,7 +66,7 @@ function editCase(caseId) {
 }
 
 async function selectInterface(operationId) {
-  state.currentOperationId = operationId; state.selectedCaseId = null; renderInterfaces();
+  state.currentOperationId = operationId; state.selectedCaseId = null; $('generate-button').disabled = false; renderInterfaces();
   try { const payload = await api(`/api/interfaces/${encodeURIComponent(operationId)}/cases`); state.cases = payload.cases || []; renderCases(); clearEditor(); status(`已选择 ${operationId}`, 'ok'); }
   catch (error) { status(error.message, 'error'); }
 }
@@ -126,8 +132,6 @@ $('run-button').addEventListener('click', async () => {
   } catch (error) { status(error.message, 'error'); }
   finally { $('run-button').disabled = false; }
 });
-
-document.addEventListener('click', event => { if (event.target.closest('.interface-item') && state.currentOperationId) $('generate-button').disabled = false; });
 
 async function loadCurrentSpec() {
   try {

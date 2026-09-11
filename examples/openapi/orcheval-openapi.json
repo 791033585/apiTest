@@ -1,1 +1,1912 @@
-{"openapi":"3.1.0","info":{"title":"OrchEval 智能客服","version":"2.0.0"},"paths":{"/health":{"get":{"summary":"Health","operationId":"health_health_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/skills":{"get":{"tags":["Skills"],"summary":"Skills Summary","description":"查看当前已加载的 Skills，便于确认热加载结果和排查解析错误。","operationId":"skills_summary_skills_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/skills/reload":{"post":{"tags":["Skills"],"summary":"Reload Skills","description":"运行时重新扫描 Skill 目录，不需要重启服务。","operationId":"reload_skills_skills_reload_post","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/chat":{"post":{"summary":"Chat","description":"主对话接口。完整流程：\n  记忆读取 → 意图识别 → Agent 路由 → 执行 → 记忆写入","operationId":"chat_chat_post","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ChatRequest"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ChatResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/monitor":{"get":{"summary":"Monitor Summary","description":"实时监控摘要：Agent 成功率、工具统计、告警、优化建议。","operationId":"monitor_summary_monitor_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/eval/dashboard/runs":{"get":{"tags":["Evaluation Dashboard"],"summary":"List Dashboard Runs","description":"列出磁盘中已有的评测结果；不会启动新评测。","operationId":"list_dashboard_runs_eval_dashboard_runs_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/eval/dashboard/runs/{run_id}":{"get":{"tags":["Evaluation Dashboard"],"summary":"Get Dashboard Run","description":"聚合一个已保存 EvalRun，且不返回 Prompt 或密钥。","operationId":"get_dashboard_run_eval_dashboard_runs__run_id__get","parameters":[{"name":"run_id","in":"path","required":true,"schema":{"type":"string","title":"Run Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/metrics":{"get":{"summary":"Prometheus Metrics","description":"Prometheus 指标入口。","operationId":"prometheus_metrics_metrics_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/search":{"post":{"summary":"Search","description":"演示检索优化链路：查询改写 → 并行召回 → 重排 → Top-K。\n展示 MCP 工具调用的核心亮点。","operationId":"search_search_post","parameters":[{"name":"query","in":"query","required":true,"schema":{"type":"string","title":"Query"}},{"name":"top_k","in":"query","required":false,"schema":{"type":"integer","default":5,"title":"Top K"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/knowledge/add":{"post":{"tags":["知识库"],"summary":"Add Knowledge","description":"批量导入文档到知识库。\n\n文档会自动切片（每片 500 字）并存入 ChromaDB，ChromaDB 内置 Embedding 模型自动向量化。\n\n示例请求体：\n```json\n{\n  \"documents\": [\n    {\"title\": \"退款政策\", \"content\": \"用户在购买后 7 天内可以申请无理由退款...\"},\n    {\"title\": \"配送说明\", \"content\": \"标准配送 3-5 个工作日...\"}\n  ]\n}\n```","operationId":"add_knowledge_knowledge_add_post","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/BatchDocInput"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/knowledge/upload":{"post":{"tags":["知识库"],"summary":"Upload Knowledge","description":"上传文件导入知识库。\n\n支持格式：\n- `.txt` / `.md`：整个文件作为一篇文档，文件名作为标题\n- `.json`：JSON 数组格式 `[{\"title\": \"...\", \"content\": \"...\"}, ...]`\n\n文件大小限制：10MB","operationId":"upload_knowledge_knowledge_upload_post","requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/Body_upload_knowledge_knowledge_upload_post"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/knowledge/stats":{"get":{"tags":["知识库"],"summary":"Knowledge Stats","description":"查看知识库统计信息（文档片段总数）。","operationId":"knowledge_stats_knowledge_stats_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}},"/eval/run":{"post":{"summary":"Run Eval","description":"运行正式版本化评测；传旧字段时走兼容评测器。","operationId":"run_eval_eval_run_post","requestBody":{"content":{"application/json":{"schema":{"anyOf":[{"$ref":"#/components/schemas/EvalRunInput"},{"type":"null"}],"title":"Body"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}}},"components":{"schemas":{"BatchDocInput":{"properties":{"documents":{"items":{"$ref":"#/components/schemas/DocInput"},"type":"array","title":"Documents"}},"type":"object","required":["documents"],"title":"BatchDocInput","description":"批量文档导入请求体。"},"Body_upload_knowledge_knowledge_upload_post":{"properties":{"file":{"type":"string","format":"binary","title":"File"}},"type":"object","required":["file"],"title":"Body_upload_knowledge_knowledge_upload_post"},"ChatRequest":{"properties":{"message":{"type":"string","title":"Message"},"user_id":{"type":"string","title":"User Id","default":"anonymous"},"conv_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Conv Id"}},"type":"object","required":["message"],"title":"ChatRequest"},"ChatResponse":{"properties":{"run_id":{"type":"string","title":"Run Id"},"conv_id":{"type":"string","title":"Conv Id"},"response":{"type":"string","title":"Response"},"intent":{"type":"string","title":"Intent"},"intent_group":{"type":"string","title":"Intent Group","default":"other"},"agent_type":{"type":"string","title":"Agent Type"},"agent_types":{"items":{"type":"string"},"type":"array","title":"Agent Types"},"primary_agent":{"type":"string","title":"Primary Agent","default":""},"supporting_agents":{"items":{"type":"string"},"type":"array","title":"Supporting Agents"},"routing_reason":{"type":"string","title":"Routing Reason","default":""},"routing_confidence":{"type":"number","title":"Routing Confidence","default":0.0},"escalated":{"type":"boolean","title":"Escalated"},"latency_ms":{"type":"number","title":"Latency Ms"},"knowledge_used":{"type":"boolean","title":"Knowledge Used","default":false},"entities":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":"object","title":"Entities"},"intent_confidence":{"type":"number","title":"Intent Confidence","default":0.0},"intent_source_scores":{"additionalProperties":{"type":"number"},"type":"object","title":"Intent Source Scores"},"trace":{"type":"object","title":"Trace"}},"type":"object","required":["run_id","conv_id","response","intent","agent_type","escalated","latency_ms"],"title":"ChatResponse"},"DocInput":{"properties":{"title":{"type":"string","title":"Title"},"content":{"type":"string","title":"Content"}},"type":"object","required":["title","content"],"title":"DocInput","description":"单篇文档输入。"},"EvalDialogInput":{"properties":{"question":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Question"},"turns":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"Turns"},"user_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"User Id"},"conv_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Conv Id"}},"type":"object","title":"EvalDialogInput","description":"对话质量评测用例。question 单轮，turns 多轮。"},"EvalIntentInput":{"properties":{"message":{"type":"string","title":"Message"},"expected_intent":{"type":"string","title":"Expected Intent"},"context":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Context"}},"type":"object","required":["message","expected_intent"],"title":"EvalIntentInput","description":"意图识别评测用例。"},"EvalRunInput":{"properties":{"dataset":{"type":"string","title":"Dataset","default":"customer_service_v1"},"trials_per_task":{"type":"integer","maximum":10.0,"minimum":1.0,"title":"Trials Per Task","default":2},"task_ids":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"Task Ids"},"baseline_run_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Baseline Run Id"},"promote_to_baseline":{"type":"boolean","title":"Promote To Baseline","default":false},"intent_cases":{"anyOf":[{"items":{"$ref":"#/components/schemas/EvalIntentInput"},"type":"array"},{"type":"null"}],"title":"Intent Cases"},"dialog_cases":{"anyOf":[{"items":{"$ref":"#/components/schemas/EvalDialogInput"},"type":"array"},{"type":"null"}],"title":"Dialog Cases"}},"type":"object","title":"EvalRunInput","description":"正式评测请求；旧intent_cases/dialog_cases仍保留兼容。"},"HTTPValidationError":{"properties":{"detail":{"items":{"$ref":"#/components/schemas/ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"},"ValidationError":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"}}}}
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OrchEval 智能客服",
+    "description": "Multi-Agent customer-service orchestration with intent routing, RAG, conversation memory, monitoring, and automated evaluation.",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Check service health",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Orchestration service is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/skills": {
+      "get": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "List loaded Agent Skills",
+        "description": "查看当前已加载的 Skills，便于确认热加载结果和排查解析错误。",
+        "operationId": "listSkills",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillsResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Skill manager is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/skills/reload": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Reload Agent Skills",
+        "description": "运行时重新扫描 Skill 目录，不需要重启服务。",
+        "operationId": "reloadSkills",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillsResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Skill manager is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Run the Multi-Agent chat workflow",
+        "description": "主对话接口。完整流程：\n  记忆读取 → 意图识别 → Agent 路由 → 执行 → 记忆写入",
+        "operationId": "chat",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Chat service is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monitor": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Get Agent and tool monitoring summary",
+        "description": "实时监控摘要：Agent 成功率、工具统计、告警、优化建议。",
+        "operationId": "getMonitorSummary",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Monitoring service is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eval/dashboard/runs": {
+      "get": {
+        "tags": [
+          "Evaluation"
+        ],
+        "summary": "List saved evaluation runs",
+        "description": "列出磁盘中已有的评测结果；不会启动新评测。",
+        "operationId": "listEvaluationRuns",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DashboardRunSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Listevaluationruns"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eval/dashboard/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "Evaluation"
+        ],
+        "summary": "Get an evaluation dashboard",
+        "description": "聚合一个已保存 EvalRun，且不返回 Prompt 或密钥。",
+        "operationId": "getEvaluationRun",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The run identifier is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The evaluation run does not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Export Prometheus metrics",
+        "description": "Prometheus 指标入口。",
+        "operationId": "prometheusMetrics",
+        "responses": {
+          "200": {
+            "description": "Prometheus text exposition format.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "post": {
+        "tags": [
+          "Knowledge Base"
+        ],
+        "summary": "Search knowledge with query rewriting and reranking",
+        "description": "演示检索优化链路：查询改写 → 并行召回 → 重排 → Top-K。\n展示 MCP 工具调用的核心亮点。",
+        "operationId": "searchKnowledge",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Natural-language knowledge query.",
+              "examples": [
+                "退款需要多久到账"
+              ],
+              "title": "Query"
+            },
+            "description": "Natural-language knowledge query."
+          },
+          {
+            "name": "top_k",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "description": "Maximum number of reranked results.",
+              "default": 5,
+              "title": "Top K"
+            },
+            "description": "Maximum number of reranked results."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Knowledge tools are not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge/add": {
+      "post": {
+        "tags": [
+          "Knowledge Base"
+        ],
+        "summary": "Add documents to the knowledge base",
+        "description": "批量导入文档到知识库。\n\n文档会自动切片（每片 500 字）并存入 ChromaDB，ChromaDB 内置 Embedding 模型自动向量化。\n\n示例请求体：\n```json\n{\n  \"documents\": [\n    {\"title\": \"退款政策\", \"content\": \"用户在购买后 7 天内可以申请无理由退款...\"},\n    {\"title\": \"配送说明\", \"content\": \"标准配送 3-5 个工作日...\"}\n  ]\n}\n```",
+        "operationId": "addKnowledge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchDocInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeImportResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Knowledge base is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge/upload": {
+      "post": {
+        "tags": [
+          "Knowledge Base"
+        ],
+        "summary": "Upload a knowledge document",
+        "description": "上传文件导入知识库。\n\n支持格式：\n- `.txt` / `.md`：整个文件作为一篇文档，文件名作为标题\n- `.json`：JSON 数组格式 `[{\"title\": \"...\", \"content\": \"...\"}, ...]`\n\n文件大小限制：10MB",
+        "operationId": "uploadKnowledge",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_uploadKnowledge"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeImportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The uploaded JSON file is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The uploaded file exceeds 10 MB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Knowledge base is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge/stats": {
+      "get": {
+        "tags": [
+          "Knowledge Base"
+        ],
+        "summary": "Get knowledge-base statistics",
+        "description": "查看知识库统计信息（文档片段总数）。",
+        "operationId": "getKnowledgeStats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeStatsResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Knowledge base is not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eval/run": {
+      "post": {
+        "tags": [
+          "Evaluation"
+        ],
+        "summary": "Run a formal or compatibility evaluation",
+        "description": "运行正式版本化评测；传旧字段时走兼容评测器。",
+        "operationId": "runEvaluation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EvalRunInput"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/FormalEvaluationResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/LegacyEvaluationResponse"
+                    }
+                  ],
+                  "title": "Response Runevaluation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The dataset or evaluation request is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Evaluation services are not ready.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentStats": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "success_rate": {
+            "type": "number",
+            "title": "Success Rate",
+            "default": 1.0
+          },
+          "avg_ms": {
+            "type": "number",
+            "title": "Avg Ms",
+            "default": 0.0
+          },
+          "monitor_penalty": {
+            "type": "number",
+            "title": "Monitor Penalty",
+            "default": 0.0
+          },
+          "routing_score": {
+            "type": "number",
+            "title": "Routing Score",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "title": "AgentStats"
+      },
+      "BatchDocInput": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocInput"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Documents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "title": "BatchDocInput",
+        "description": "Batch document import request.",
+        "examples": [
+          {
+            "documents": [
+              {
+                "content": "用户在订单取消后 5 至 7 个工作日内收到退款。",
+                "title": "退款政策"
+              }
+            ]
+          }
+        ]
+      },
+      "Body_uploadKnowledge": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File",
+            "description": "UTF-8 text, Markdown, or a JSON array of {title, content} objects. Maximum size: 10 MB."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_uploadKnowledge"
+      },
+      "ChatRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Message",
+            "description": "User message sent to the orchestration pipeline.",
+            "examples": [
+              "我的订单已经取消，退款多久到账？"
+            ]
+          },
+          "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "User Id",
+            "description": "Stable user identifier used for conversation memory isolation.",
+            "default": "anonymous",
+            "examples": [
+              "user-1001"
+            ]
+          },
+          "conv_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conv Id",
+            "description": "Existing conversation identifier. Omit it to start a new conversation.",
+            "examples": [
+              "conv-20260911-001"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "ChatRequest",
+        "examples": [
+          {
+            "message": "我的订单已经取消，退款多久到账？",
+            "user_id": "user-1001"
+          }
+        ]
+      },
+      "ChatResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "conv_id": {
+            "type": "string",
+            "title": "Conv Id"
+          },
+          "response": {
+            "type": "string",
+            "title": "Response"
+          },
+          "intent": {
+            "type": "string",
+            "title": "Intent"
+          },
+          "intent_group": {
+            "type": "string",
+            "title": "Intent Group",
+            "default": "other"
+          },
+          "agent_type": {
+            "type": "string",
+            "title": "Agent Type"
+          },
+          "agent_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Agent Types"
+          },
+          "primary_agent": {
+            "type": "string",
+            "title": "Primary Agent",
+            "default": ""
+          },
+          "supporting_agents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supporting Agents"
+          },
+          "routing_reason": {
+            "type": "string",
+            "title": "Routing Reason",
+            "default": ""
+          },
+          "routing_confidence": {
+            "type": "number",
+            "title": "Routing Confidence",
+            "default": 0.0
+          },
+          "escalated": {
+            "type": "boolean",
+            "title": "Escalated"
+          },
+          "latency_ms": {
+            "type": "number",
+            "title": "Latency Ms"
+          },
+          "knowledge_used": {
+            "type": "boolean",
+            "title": "Knowledge Used",
+            "default": false
+          },
+          "entities": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Entities"
+          },
+          "intent_confidence": {
+            "type": "number",
+            "title": "Intent Confidence",
+            "default": 0.0
+          },
+          "intent_source_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Intent Source Scores"
+          },
+          "trace": {
+            "type": "object",
+            "title": "Trace"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "conv_id",
+          "response",
+          "intent",
+          "agent_type",
+          "escalated",
+          "latency_ms"
+        ],
+        "title": "ChatResponse"
+      },
+      "DashboardResponse": {
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/DashboardRunMetadata"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DashboardSummary"
+          },
+          "intent_metrics": {
+            "type": "object",
+            "title": "Intent Metrics"
+          },
+          "judge_scores": {
+            "type": "object",
+            "title": "Judge Scores"
+          },
+          "deterministic_metrics": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Deterministic Metrics"
+          },
+          "stability_metrics": {
+            "type": "object",
+            "title": "Stability Metrics"
+          },
+          "latency_metrics": {
+            "type": "object",
+            "title": "Latency Metrics"
+          },
+          "dataset_composition": {
+            "type": "object",
+            "title": "Dataset Composition"
+          },
+          "failed_cases": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Failed Cases"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run",
+          "summary",
+          "intent_metrics",
+          "judge_scores",
+          "deterministic_metrics",
+          "stability_metrics",
+          "latency_metrics",
+          "dataset_composition",
+          "failed_cases"
+        ],
+        "title": "DashboardResponse"
+      },
+      "DashboardRunMetadata": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "dataset_name": {
+            "type": "string",
+            "title": "Dataset Name",
+            "default": ""
+          },
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version",
+            "default": ""
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": ""
+          },
+          "judge_model": {
+            "type": "string",
+            "title": "Judge Model",
+            "default": ""
+          },
+          "completed_at": {
+            "type": "string",
+            "title": "Completed At",
+            "default": ""
+          },
+          "trials_per_task": {
+            "type": "integer",
+            "title": "Trials Per Task",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "DashboardRunMetadata"
+      },
+      "DashboardRunSummary": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "dataset_name": {
+            "type": "string",
+            "title": "Dataset Name",
+            "default": ""
+          },
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version",
+            "default": ""
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": ""
+          },
+          "completed_at": {
+            "type": "string",
+            "title": "Completed At",
+            "default": ""
+          },
+          "total_tasks": {
+            "type": "integer",
+            "title": "Total Tasks",
+            "default": 0
+          },
+          "total_trials": {
+            "type": "integer",
+            "title": "Total Trials",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "DashboardRunSummary"
+      },
+      "DashboardSummary": {
+        "properties": {
+          "total_tasks": {
+            "type": "integer",
+            "title": "Total Tasks"
+          },
+          "total_trials": {
+            "type": "integer",
+            "title": "Total Trials"
+          },
+          "intent_accuracy": {
+            "type": "number",
+            "title": "Intent Accuracy"
+          },
+          "macro_f1": {
+            "type": "number",
+            "title": "Macro F1"
+          },
+          "pass_at_1": {
+            "type": "number",
+            "title": "Pass At 1"
+          },
+          "pass_at_2": {
+            "type": "number",
+            "title": "Pass At 2"
+          },
+          "pass_squared": {
+            "type": "number",
+            "title": "Pass Squared"
+          },
+          "average_latency_ms": {
+            "type": "number",
+            "title": "Average Latency Ms"
+          },
+          "judge_error_rate": {
+            "type": "number",
+            "title": "Judge Error Rate"
+          },
+          "judge_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Average"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_tasks",
+          "total_trials",
+          "intent_accuracy",
+          "macro_f1",
+          "pass_at_1",
+          "pass_at_2",
+          "pass_squared",
+          "average_latency_ms",
+          "judge_error_rate"
+        ],
+        "title": "DashboardSummary"
+      },
+      "DocInput": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Title",
+            "examples": [
+              "退款政策"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Content",
+            "examples": [
+              "用户在订单取消后 5 至 7 个工作日内收到退款。"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "content"
+        ],
+        "title": "DocInput",
+        "description": "One document to be added to the knowledge base."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "examples": [
+              "服务未就绪"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse"
+      },
+      "EvalDialogInput": {
+        "properties": {
+          "question": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "turns": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turns"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "conv_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conv Id"
+          }
+        },
+        "type": "object",
+        "title": "EvalDialogInput",
+        "description": "Conversation-quality evaluation case. Use question or turns."
+      },
+      "EvalIntentInput": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Message",
+            "examples": [
+              "退款多久到账？"
+            ]
+          },
+          "expected_intent": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Expected Intent",
+            "examples": [
+              "refund"
+            ]
+          },
+          "context": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "expected_intent"
+        ],
+        "title": "EvalIntentInput",
+        "description": "Intent-recognition evaluation case."
+      },
+      "EvalRunInput": {
+        "properties": {
+          "dataset": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Dataset",
+            "default": "customer_service_v1"
+          },
+          "trials_per_task": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Trials Per Task",
+            "default": 2
+          },
+          "task_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Ids"
+          },
+          "baseline_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Run Id"
+          },
+          "promote_to_baseline": {
+            "type": "boolean",
+            "title": "Promote To Baseline",
+            "default": false
+          },
+          "intent_cases": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EvalIntentInput"
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Cases"
+          },
+          "dialog_cases": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EvalDialogInput"
+                },
+                "type": "array",
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dialog Cases"
+          }
+        },
+        "type": "object",
+        "title": "EvalRunInput",
+        "description": "Formal evaluation request with compatibility fields for ad-hoc cases.",
+        "examples": [
+          {
+            "dataset": "customer_service_v1",
+            "promote_to_baseline": false,
+            "trials_per_task": 2
+          }
+        ]
+      },
+      "EvaluationDataset": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "EvaluationDataset"
+      },
+      "FormalEvaluationResponse": {
+        "properties": {
+          "eval_run_id": {
+            "type": "string",
+            "title": "Eval Run Id"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/EvaluationDataset"
+          },
+          "configuration": {
+            "type": "object",
+            "title": "Configuration"
+          },
+          "aggregate_metrics": {
+            "type": "object",
+            "title": "Aggregate Metrics"
+          },
+          "regressions": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Regressions"
+          },
+          "new_bad_cases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "New Bad Cases"
+          },
+          "fixed_bad_cases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fixed Bad Cases"
+          },
+          "baseline_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Run Id"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          },
+          "result_path": {
+            "type": "string",
+            "title": "Result Path"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/FormalEvaluationTask"
+            },
+            "type": "array",
+            "title": "Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "eval_run_id",
+          "dataset",
+          "configuration",
+          "aggregate_metrics",
+          "regressions",
+          "new_bad_cases",
+          "fixed_bad_cases",
+          "limitations",
+          "result_path",
+          "tasks"
+        ],
+        "title": "FormalEvaluationResponse"
+      },
+      "FormalEvaluationTask": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "trials": {
+            "items": {
+              "$ref": "#/components/schemas/FormalEvaluationTrial"
+            },
+            "type": "array",
+            "title": "Trials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "description",
+          "trials"
+        ],
+        "title": "FormalEvaluationTask"
+      },
+      "FormalEvaluationTrial": {
+        "properties": {
+          "trial_id": {
+            "type": "string",
+            "title": "Trial Id"
+          },
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "latency_ms": {
+            "type": "number",
+            "title": "Latency Ms"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "grader_results": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Grader Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trial_id",
+          "passed",
+          "latency_ms"
+        ],
+        "title": "FormalEvaluationTrial"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "examples": [
+              "ok"
+            ]
+          },
+          "agents": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AgentStats"
+            },
+            "type": "object",
+            "title": "Agents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "agents"
+        ],
+        "title": "HealthResponse"
+      },
+      "KnowledgeImportResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "added_chunks": {
+            "type": "integer",
+            "title": "Added Chunks"
+          },
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "added_chunks",
+          "total_chunks"
+        ],
+        "title": "KnowledgeImportResponse"
+      },
+      "KnowledgeStatsResponse": {
+        "properties": {
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_chunks"
+        ],
+        "title": "KnowledgeStatsResponse"
+      },
+      "LegacyEvaluationResponse": {
+        "properties": {
+          "pass_rate": {
+            "type": "number",
+            "title": "Pass Rate"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "passed": {
+            "type": "integer",
+            "title": "Passed"
+          },
+          "avg_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Avg Scores"
+          },
+          "regressions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Regressions"
+          },
+          "recommendations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/LegacyEvaluationResult"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pass_rate",
+          "total",
+          "passed",
+          "avg_scores",
+          "regressions",
+          "recommendations",
+          "results"
+        ],
+        "title": "LegacyEvaluationResponse"
+      },
+      "LegacyEvaluationResult": {
+        "properties": {
+          "test_id": {
+            "type": "string",
+            "title": "Test Id"
+          },
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Scores"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "default": ""
+          },
+          "metadata": {
+            "type": "object",
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "test_id",
+          "passed",
+          "scores"
+        ],
+        "title": "LegacyEvaluationResult"
+      },
+      "MonitorResponse": {
+        "properties": {
+          "agent_stats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AgentStats"
+            },
+            "type": "object",
+            "title": "Agent Stats"
+          },
+          "tool_stats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ToolStats"
+            },
+            "type": "object",
+            "title": "Tool Stats"
+          },
+          "active_alerts": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Active Alerts"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/MonitorSuggestion"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_stats",
+          "tool_stats"
+        ],
+        "title": "MonitorResponse"
+      },
+      "MonitorSuggestion": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "action",
+          "priority"
+        ],
+        "title": "MonitorSuggestion"
+      },
+      "SearchResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItem"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "reranked": {
+            "type": "boolean",
+            "title": "Reranked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "results",
+          "reranked"
+        ],
+        "title": "SearchResponse"
+      },
+      "SearchResultItem": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "default": ""
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "default": 0.0
+          },
+          "fallback": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "title": "SearchResultItem"
+      },
+      "SkillSummaryItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keywords"
+          },
+          "agents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Agents"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "content_chars": {
+            "type": "integer",
+            "title": "Content Chars",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "path"
+        ],
+        "title": "SkillSummaryItem"
+      },
+      "SkillsResponse": {
+        "properties": {
+          "root_dir": {
+            "type": "string",
+            "title": "Root Dir"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillSummaryItem"
+            },
+            "type": "array",
+            "title": "Skills"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "root_dir",
+          "count",
+          "skills"
+        ],
+        "title": "SkillsResponse"
+      },
+      "ToolStats": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "success_rate": {
+            "type": "number",
+            "title": "Success Rate",
+            "default": 1.0
+          },
+          "avg_latency_ms": {
+            "type": "number",
+            "title": "Avg Latency Ms",
+            "default": 0.0
+          },
+          "consecutive_fails": {
+            "type": "integer",
+            "title": "Consecutive Fails",
+            "default": 0
+          },
+          "circuit_state": {
+            "type": "string",
+            "title": "Circuit State",
+            "default": "closed"
+          }
+        },
+        "type": "object",
+        "title": "ToolStats"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "System",
+      "description": "Service health and runtime diagnostics."
+    },
+    {
+      "name": "Chat",
+      "description": "The public entry point for the Multi-Agent customer-service workflow."
+    },
+    {
+      "name": "Skills",
+      "description": "Inspect and reload Agent business Skills."
+    },
+    {
+      "name": "Knowledge Base",
+      "description": "Import, search, and inspect RAG knowledge."
+    },
+    {
+      "name": "Evaluation",
+      "description": "Run evaluations and inspect saved evaluation dashboards."
+    },
+    {
+      "name": "Monitoring",
+      "description": "Agent, tool, and Prometheus monitoring endpoints."
+    }
+  ]
+}

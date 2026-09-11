@@ -122,7 +122,7 @@ class FileStorage:
 
         # 兼容早期已经保存、但没有 source_interface 的 AI 用例。
         case_id = str(case.get("case_id", ""))
-        for case_type in ("positive", "negative", "boundary", "dependency"):
+        for case_type in ("positive", "negative", "boundary", "security", "dependency"):
             marker = f"-{case_type}-"
             if marker in case_id:
                 return case_id.split(marker, 1)[0]

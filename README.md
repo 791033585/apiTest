@@ -9,6 +9,7 @@ API Test Workbench is a lightweight, data-driven API automation testing framewor
 - Imports local Swagger/OpenAPI JSON or YAML files.
 - Lists the APIs defined in an OpenAPI document.
 - Generates structured API test cases for a selected operation with DeepSeek.
+- Designs evidence-based positive, negative, boundary, dependency, and security cases.
 - Supports manual editing, deletion, enabling, and disabling of test cases.
 - Executes selected cases against any target API service.
 - Supports status-code, JSONPath, header, response-time, variable extraction, and dependency checks.

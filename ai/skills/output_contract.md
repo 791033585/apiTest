@@ -17,7 +17,7 @@
 
 每条用例至少包含：`case_id`、`title`、`method`、`path`、`assertions`。
 
-允许的测试类型为：`positive`、`negative`、`boundary`、`dependency`。
+允许的测试类型为：`positive`、`negative`、`boundary`、`security`、`dependency`。
 
 允许的优先级为：`P0`、`P1`、`P2`、`P3`。
 
